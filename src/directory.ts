@@ -6,7 +6,6 @@
 import { Config, DirectoryItem, DirectoryType, FileItem } from "./config";
 import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { log, logError } from "./util/log";
 import { criticalErrorHandler } from "./util/common";
 import { fromFullNameToDirectoryItemName, fullNameToFileDescriptor, seperateDirectoryFromFile } from "./util/dir";
 
@@ -21,7 +20,7 @@ export async function traverseMainDirectory(): Promise<DirectoryItem> {
     Config.ROOT_DIR_NAME,
     DirectoryType.STATIC,
     Config.ROOT_DIR_FULLNAME,
-    mainDir,
+    "/",
     rootAbsPath,
     true
   );
@@ -79,8 +78,7 @@ export async function traverseMainDirectory(): Promise<DirectoryItem> {
     openDirectoryItems.push(activeDirectoryItem.subdirectories[activeDirectoryItem.cursor.index++]);
     activeDirectoryItem = openDirectoryItems[openDirectoryItems.length - 1];
 
-    console.log("loop")
   }
-  
+
   return rootDirectoryItem;
 }

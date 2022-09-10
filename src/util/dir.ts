@@ -1,5 +1,5 @@
 import { stat } from "node:fs/promises";
-import { resolve } from "node:path";
+import path, { resolve } from "node:path";
 import { FileDescriptor, FileMethod, FilePatt, FileScope, FileType } from "../config";
 import { criticalErrorHandler } from "./common";
 import { logError } from "./log";
@@ -120,4 +120,26 @@ export function fullNameToFileDescriptor(fullName: string): FileDescriptor {
   }
 
   return fileDescriptor;
+}
+
+export function isDynamicPathPart(part: string): boolean {
+  return /^\[([^0-9][a-zA-Z0-9]*)\]$/.test(part);
+}
+
+export function dynamicPathPartToDynmaicPath(part: string) {
+  const compiled = /^\[(?<name>[^0-9][a-zA-Z0-9]*)\]$/.exec(part);
+  
+  return compiled?.groups?.name;  
+}
+
+export function fromRelativePathToRoutePath(relativePath: string): string {
+  return relativePath.split("/")
+    .map(part => {
+      if (isDynamicPathPart(part)) {
+        const pathPart = dynamicPathPartToDynmaicPath(part);
+        if (pathPart) return pathPart;
+        return "";
+      }
+      return part;
+    }).join("/")
 }

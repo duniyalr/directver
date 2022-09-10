@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "target" : "ES6",
-    "module": "ESNext"
+    "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Node",
+    "experimentalDecorators": true
   }
 }

@@ -1,3 +1,5 @@
+import { fromRelativePathToRoutePath } from "./util/dir";
+
 export class Config {
   // the relative path of the files directory
   static MAIN_DIR_PATH: string = "api";
@@ -52,8 +54,8 @@ export class FilePatt {
   static CONTROLLER_TYPE = /^_$/;
   static PIPE_TYPE = /^@?pipe$/;
   static GUARD_TYPE = /^@?guard$/;
-  static METHOD = new RegExp("^" + Object.values(FileMethod).map(method => `(${method.toLowerCase()})`) + "$");
-  static SCOPE = new RegExp("^" + Object.values(FileScope).map(method => `(${method.toLowerCase()})`) + "$");
+  static METHOD = new RegExp("^" + Object.values(FileMethod).map(method => `(${method.toLowerCase()})`).join("|") + "$");
+  static SCOPE = new RegExp("^" + Object.values(FileScope).map(method => `(${method.toLowerCase()})`).join("|") + "$");
   static NAME = /^[^0-9][a-zA-z_0-9]*$/;
   static EXT = /(js)|(ts)/;
 }
@@ -94,6 +96,7 @@ export class DirectoryItem {
   readonly fullName: string;
   readonly relativePath: string;
   readonly absPath: string;
+  readonly routePath: string;
 
   readonly isRoot: boolean = false;
 
@@ -122,6 +125,7 @@ export class DirectoryItem {
 
     if (isRoot) this.isRoot = isRoot;
 
+    this.routePath = fromRelativePathToRoutePath(this.relativePath);
     this.cursor = new Cursor();
   }
 }
