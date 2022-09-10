@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { fromRelativePathToRoutePath } from "./util/dir";
 
 export class Config {
@@ -27,10 +28,10 @@ export class Cursor {
 }
 
 export type FileExportObject = {
-  fn: Function;
+  default: Function | Object;
 }
 
-export type FileExport = Function | FileExportObject | undefined;
+export type FileExport = FileExportObject | undefined;
 
 export const FileMethod: {
   [key: string]: string
@@ -127,5 +128,57 @@ export class DirectoryItem {
 
     this.routePath = fromRelativePathToRoutePath(this.relativePath);
     this.cursor = new Cursor();
+  }
+}
+
+export class Context {
+  body: Object;
+  params: Object;
+  query: Object;
+
+  private request: Request;
+  private response: Response;
+  private meta: Object = {};
+
+  constructor(request: Request, response: Response) {
+    this.request = request;
+    this.response = response;
+  }
+
+  setMeta(key: string, value: any) {
+    this.meta[key] = value;
+  }
+
+  getMeta(key: string) {
+    return this.meta[key];
+  }
+
+  getRequest(): Request {
+    return this.request;
+  }
+
+  getResponse(): Response {
+    return this.response;
+  }
+}
+
+export type DirectverRequest = Request & { __directver: {
+  context: Context
+}}
+
+export class DirectverResponse {
+  data: any;
+  statusCode: number;
+  contentType: string;
+  constructor(data: any, req: DirectverRequest) {
+    this.data = data;
+
+    if (typeof data === "object") {
+      this.contentType = "application/json"
+    } else {
+      this.contentType = "text/plain"
+    }
+    
+    this.statusCode = req.statusCode;
   }
 }

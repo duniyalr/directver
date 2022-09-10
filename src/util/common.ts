@@ -49,3 +49,13 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
 
   return splittefFiles;
 }
+
+export function isFunction(fn: any): boolean {
+  return (
+    fn &&
+    (
+      {}.toString.call(fn) === "[object Function]" ||
+      {}.toString.call(fn) === "[object AsyncFunction]"
+    )
+  )
+}
