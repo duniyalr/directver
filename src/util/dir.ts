@@ -40,6 +40,8 @@ function getFileType(type: string | undefined): FileType | null {
     FileType.PIPE :
     FilePatt.GUARD_TYPE.test(type) ?
     FileType.GUARD :
+    FilePatt.OUT_TYPE.test(type) ?
+    FileType.OUT :
     null
   );
 }

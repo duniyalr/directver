@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { fromRelativePathToRoutePath } from "./util/dir";
-
+import { Express } from "express";
 export const FileMethod: {
   [key: string]: string
 } = {
@@ -23,7 +23,7 @@ export class Config {
    * and throw no error
    */
   static USE_DEFAULT_CONTROLLER_FN = true;
-  
+
   /**
    * all method is used when not method provided
    */
@@ -34,7 +34,8 @@ export class Config {
 export enum FileType {
   CONTROLLER = "CONTROLLER",
   PIPE = "PIPE",
-  GUARD = "GUARD"
+  GUARD = "GUARD",
+  OUT = "OUT",
 }
 
 /**
@@ -68,6 +69,7 @@ export class FilePatt {
   static CONTROLLER_TYPE = /^_$/;
   static PIPE_TYPE = /^@?pipe$/;
   static GUARD_TYPE = /^@?guard$/;
+  static OUT_TYPE = /^@?out$/;
   static METHOD = new RegExp("^" + Object.values(FileMethod).map(method => `(${method.toLowerCase()})`).join("|") + "$");
   static SCOPE = new RegExp("^" + Object.values(FileScope).map(method => `(${method.toLowerCase()})`).join("|") + "$");
   static NAME = /^[^0-9][a-zA-z_0-9]*$/;
@@ -215,6 +217,30 @@ export class DirectverResponse {
 }
 
 export type ControllerFn = (ctx: Context) => any;
+export type OutFn = (data: any) => any;
+
 export function defaultControllerFn(ctx: Context) {
   return {};
+}
+
+export class LazyInject {
+  expressFnName: string;
+  path: string | RegExp;
+  type: FileType;
+  method: string;
+  fn: any; // TODO func declaration (__unknown: any, req: Request, res: Response, next: NextFunction) => void
+
+  constructor(
+    expressFnName: string,
+    path: string | RegExp,
+    type: FileType,
+    method: string,
+    fn: any,
+  ) {
+    this.expressFnName = expressFnName;
+    this.path = path;
+    this.type = type;
+    this.method = method;
+    this.fn = fn;
+  }
 }

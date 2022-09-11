@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 const timestampStyle = chalk.blue;
-const logNameStyle = chalk.yellow;
+const logNameStyle = chalk.yellowBright;
 const logTypeStyle = chalk.hex("#f59842");
 const errorStyle = chalk.red;
 export enum LogType {
@@ -13,6 +13,7 @@ export enum LogName {
   CHECK = "CHECK",
   ROUTE = "ROUTE",
   PIPE = "PIPE",
+  OUT = "OUT",
 }
 
 export function log(message: string, logName: LogName = LogName.CHECK) {
