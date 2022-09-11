@@ -4,6 +4,7 @@
     "module": "ESNext",
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "Node",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "esModuleInterop": true
   }
 }

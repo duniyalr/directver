@@ -1,5 +1,5 @@
 import { stat } from "node:fs/promises";
-import path, { resolve } from "node:path";
+import path, { resolve, sep } from "node:path";
 import { FileDescriptor, FileMethod, FilePatt, FileScope, FileType } from "../config";
 import { criticalErrorHandler } from "./common";
 import { logError } from "./log";
@@ -133,7 +133,7 @@ export function dynamicPathPartToDynmaicPath(part: string) {
 }
 
 export function fromRelativePathToRoutePath(relativePath: string): string {
-  return relativePath.split("/")
+  return relativePath.split(sep)
     .map(part => {
       if (isDynamicPathPart(part)) {
         const pathPart = dynamicPathPartToDynmaicPath(part);

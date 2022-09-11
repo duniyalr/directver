@@ -6,9 +6,10 @@
 import { Config, DirectoryItem, DirectoryType, FileItem } from "./config";
 import { log } from "./util/log";
 import { readdir } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join, normalize, resolve } from "node:path";
 import { criticalErrorHandler } from "./util/common";
 import { fromFullNameToDirectoryItemName, fullNameToFileDescriptor, seperateDirectoryFromFile } from "./util/dir";
+import { pathToFileURL } from "node:url";
 
 export async function traverseMainDirectory(): Promise<DirectoryItem> {
   log(`Traversing the "${Config.MAIN_DIR_PATH}" directory`)
@@ -57,7 +58,8 @@ export async function traverseMainDirectory(): Promise<DirectoryItem> {
       }
 
       for (const fileName of activeDirectoryItem.fileNames) {
-        const exported = await import(resolve(absPath, fileName));
+        
+        const exported = await import(pathToFileURL(resolve(absPath, fileName)).toString());
         const fileDescriptor = fullNameToFileDescriptor(fileName);
         const file = new FileItem(
           fileName,

@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response, Express } from "express";
 import { Config, Context, ControllerFn, defaultControllerFn, DirectoryItem, DirectverRequest, DirectverResponse, FileItem } from "./config";
 import { criticalErrorHandler, fromFilesToSplitFiles, isFunction } from "./util/common";
-import * as bodyParser from "body-parser";
+import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { inject__directver, responser } from "./middlewares";
 import { log, LogName } from "./util/log";
@@ -80,7 +80,7 @@ function subscribeControllers(directoryItem: DirectoryItem, controllers: FileIte
       return next(new DirectverResponse(response, req));
     }
 
-    log(`"${path}" added`, LogName.ROUTE);
+    log(`${controllerFile?.descriptor?.method?.toUpperCase().padEnd(5)} "${path}"`, LogName.ROUTE);
     _express[expressFnName](path, wrapper);
   }
 }

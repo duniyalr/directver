@@ -1,12 +1,33 @@
 import { Request, Response } from "express";
 import { fromRelativePathToRoutePath } from "./util/dir";
 
+export const FileMethod: {
+  [key: string]: string
+} = {
+  POST :"POST",
+  GET : "GET",
+  PUT : "PUT",
+  PATCH : "PATCH",
+  DELETE : "DELETE",
+  ALL: "ALL"
+}
+
+
 export class Config {
   // the relative path of the files directory
   static MAIN_DIR_PATH: string = "api";
   static ROOT_DIR_NAME: string = "root";
   static ROOT_DIR_FULLNAME: string = "root";
+  /**
+   * if a file doesn't export a handler use default handler 
+   * and throw no error
+   */
   static USE_DEFAULT_CONTROLLER_FN = true;
+  
+  /**
+   * all method is used when not method provided
+   */
+  static DEFAULT_METHOD = FileMethod.ALL;
   static PORT = 2323;
 }
 
@@ -34,16 +55,6 @@ export type FileExportObject = {
 }
 
 export type FileExport = FileExportObject | undefined;
-
-export const FileMethod: {
-  [key: string]: string
-} = {
-  POST :"POST",
-  GET : "GET",
-  PUT : "PUT",
-  PATCH : "PATCH",
-  DELETE : "DELETE"
-}
 
 export const FileScope: {
   [key: string]: string

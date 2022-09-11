@@ -1,4 +1,4 @@
-import { FileItem, FileType } from "../config";
+import { Config, FileItem, FileType } from "../config";
 import { logError } from "./log";
 import { SplittedFiles } from "../subscriber";
 import { validate } from "class-validator";
@@ -26,7 +26,10 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
         // this condition has a conflict with fullNameToFileDescriptor TODO
         //if (descriptor.name) criticalErrorHandler(new Error(`Controller can't have a name in ${file.directoryItem.relativePath}`))
         if (descriptor.scope) criticalErrorHandler(new Error(`Controller can't have a scope in ${file.directoryItem.relativePath}`))
-
+        /**
+         * if method not provided the default method will use
+         */
+        if (!descriptor.method) descriptor.method = Config.DEFAULT_METHOD;
         splittefFiles.CONTROLLER.push(file);
         break;
       }
