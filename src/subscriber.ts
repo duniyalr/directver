@@ -1,10 +1,11 @@
 import express, { NextFunction, Request, Response, Express } from "express";
 import { Config, Context, ControllerFn, defaultControllerFn, DirectoryItem, DirectverRequest, DirectverResponse, FileItem } from "./config";
-import { criticalErrorHandler, fromFilesToSplitFiles, isFunction } from "./util/common";
+import { criticalErrorHandler, fromFilesToSplitFiles, isFunction, metodizeUse } from "./util/common";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { inject__directver, responser } from "./middlewares";
 import { log, LogName } from "./util/log";
+import { join } from "node:path";
 
 const _express = express();
 
@@ -24,7 +25,7 @@ export function subscribe(rootDirectoryItem: DirectoryItem): Express{
     if (activeDirectoryItem.cursor.index === 0) {
 
       const splittedFiles = fromFilesToSplitFiles(activeDirectoryItem.files);
-      
+      subscribePipes(activeDirectoryItem, splittedFiles.PIPE);
       subscribeControllers(activeDirectoryItem, splittedFiles.CONTROLLER);
       
     }
@@ -55,13 +56,41 @@ function injectEndingMiddlewares() {
   _express.use(responser);
 }
 
-function subscribeControllers(directoryItem: DirectoryItem, controllers: FileItem[]) {
-  for (const controllerFile of controllers) {
-    const path = controllerFile.directoryItem.routePath;
-    const method = controllerFile.descriptor.method;
+function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {
+  for (const file of fileItems) {
+    const path = file.directoryItem.routePath;
+    const method = file.descriptor.method;
+    const cover = file.descriptor.cover;
+    const fn: ControllerFn = isFunction(file?.exported?.default) 
+      ? file?.exported?.default as ControllerFn 
+      : defaultControllerFn;
+    
+    if (fn === defaultControllerFn) {
+      return criticalErrorHandler(new Error(`Pipe "${join(directoryItem.relativePath, file.fullName)}" doesn't export a function`))
+    }
+    const expressFnName = (cover ? "use" : method ? method.toLowerCase() : "all") as keyof typeof _express;
 
-    const fn: ControllerFn = isFunction(controllerFile?.exported?.default) 
-      ? controllerFile?.exported?.default as ControllerFn 
+    const wrapper = async function(req: DirectverRequest, res: Response, next: NextFunction) {
+      let response: void | Promise<void> = fn(req.__directver.context);
+      if (response instanceof Promise) {
+        response = await response;
+      }
+
+      return next();
+    }
+
+    log(`${file?.descriptor?.method?.toUpperCase().padEnd(5)} "${path}"`, LogName.PIPE);
+    _express[expressFnName](path, expressFnName === "use" ? metodizeUse(wrapper, method) : wrapper);
+  }
+}
+
+function subscribeControllers(directoryItem: DirectoryItem, controllers: FileItem[]) {
+  for (const file of controllers) {
+    const path = file.directoryItem.routePath;
+    const method = file.descriptor.method;
+
+    const fn: ControllerFn = isFunction(file?.exported?.default) 
+      ? file?.exported?.default as ControllerFn 
       : defaultControllerFn;
     
     if (fn === defaultControllerFn && !Config.USE_DEFAULT_CONTROLLER_FN) {
@@ -80,7 +109,7 @@ function subscribeControllers(directoryItem: DirectoryItem, controllers: FileIte
       return next(new DirectverResponse(response, req));
     }
 
-    log(`${controllerFile?.descriptor?.method?.toUpperCase().padEnd(5)} "${path}"`, LogName.ROUTE);
+    log(`${file?.descriptor?.method?.toUpperCase().padEnd(5)} "${path}"`, LogName.ROUTE);
     _express[expressFnName](path, wrapper);
   }
 }

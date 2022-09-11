@@ -129,7 +129,7 @@ export function isDynamicPathPart(part: string): boolean {
 export function dynamicPathPartToDynmaicPath(part: string) {
   const compiled = /^\[(?<name>[^0-9][a-zA-Z0-9]*)\]$/.exec(part);
   
-  return compiled?.groups?.name;  
+  return ":" + compiled?.groups?.name;  
 }
 
 export function fromRelativePathToRoutePath(relativePath: string): string {

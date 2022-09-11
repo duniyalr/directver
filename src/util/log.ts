@@ -12,13 +12,14 @@ export enum LogType {
 export enum LogName {
   CHECK = "CHECK",
   ROUTE = "ROUTE",
+  PIPE = "PIPE",
 }
 
 export function log(message: string, logName: LogName = LogName.CHECK) {
   console.log(
     logTypeStyle(`[${LogType.LOG}]`),
     timestampStyle(`  [${(new Date()).toLocaleTimeString()}]`),
-    logNameStyle(`  [${logName}]  ${message}`)
+    logNameStyle(`${`  [${logName}]`.padEnd(9)}  ${message}`)
     );
 }
 

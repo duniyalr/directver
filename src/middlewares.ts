@@ -10,7 +10,7 @@ export function inject__directver(req: Request, res: Response, next: NextFunctio
 }
 
 /**
- * general function for finishing the request-response cycle and sends a resposne 
+ * general function for finishing the request-response cycle and sending a resposne 
  * to client;
  */
 export function responser(__unknownObject: any, req: Request, res: Response, next: NextFunction) {

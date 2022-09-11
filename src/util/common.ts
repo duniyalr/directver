@@ -1,7 +1,8 @@
-import { Config, FileItem, FileType } from "../config";
+import { Config, FileItem, FileMethod, FileType } from "../config";
 import { logError } from "./log";
 import { SplittedFiles } from "../subscriber";
 import { validate } from "class-validator";
+import { NextFunction } from "express";
 
 export function criticalErrorHandler(err: any) {
   if (err instanceof Error) {
@@ -61,4 +62,16 @@ export function isFunction(fn: any): boolean {
       {}.toString.call(fn) === "[object AsyncFunction]"
     )
   )
+}
+
+export function metodizeUse(fn: Function, methods: string | string[]) {
+  if (!Array.isArray(methods)) methods = [methods];
+  methods = methods.map(method => method.toLowerCase());
+
+  if (methods.includes("all")) return fn;
+  
+  return function(req: Request, res: Response, next: NextFunction) {
+    if (!methods.includes(req.method)) return next();
+    return fn()
+  }
 }
