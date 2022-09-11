@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { fromRelativePathToRoutePath } from "./util/dir";
 import { Express } from "express";
+import { STATUS_CODES } from "node:http";
+
 export const FileMethod: {
   [key: string]: string
 } = {
@@ -226,6 +228,7 @@ export function defaultControllerFn(ctx: Context) {
 export class LazyInject {
   expressFnName: string;
   path: string | RegExp;
+  originalPath: string;
   type: FileType;
   method: string;
   fn: any; // TODO func declaration (__unknown: any, req: Request, res: Response, next: NextFunction) => void
@@ -233,14 +236,30 @@ export class LazyInject {
   constructor(
     expressFnName: string,
     path: string | RegExp,
+    originalPath: string,
     type: FileType,
     method: string,
     fn: any,
   ) {
     this.expressFnName = expressFnName;
     this.path = path;
+    this.originalPath = originalPath;
     this.type = type;
     this.method = method;
     this.fn = fn;
+  }
+}
+
+export class HttpError {
+  statusCode: number;
+  message: string;
+  error: string;
+  constructor(
+    statusCode: number,
+    message: string
+  ) {
+    this.statusCode = statusCode;
+    this.message = message;
+    this.error = STATUS_CODES[this.statusCode] ? STATUS_CODES[this.statusCode] : "Unknown Error";
   }
 }

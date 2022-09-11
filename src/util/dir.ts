@@ -73,7 +73,7 @@ function getFileName(name: string | undefined | null): string | null {
   );
 }
 
-function isCover(type: FileType | undefined | null): boolean {
+function isCover(type: string | undefined | null): boolean {
   if (!type) return false;
   return /^@.*/.test(type as string);
 }
@@ -92,12 +92,13 @@ export function fullNameToFileDescriptor(fullName: string): FileDescriptor {
     criticalErrorHandler(new Error(`"${fullName}" is not a valid file name`));
   }
 
-  const type = getFileType(parts.shift());
+  const rawType = parts.shift();
+  const type = getFileType(rawType);
   if (type === null ) {
     criticalErrorHandler(new Error(`Type of ${fullName} is invalid`));
   }
   fileDescriptor.type = type;
-  fileDescriptor.cover = isCover(type);
+  fileDescriptor.cover = isCover(rawType);
 
   let part = parts.shift();
 

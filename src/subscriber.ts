@@ -3,7 +3,7 @@ import { Config, Context, ControllerFn, defaultControllerFn, DirectoryItem, Dire
 import { criticalErrorHandler, fromFilesToSplitFiles, isFunction, methodizeUse } from "./util/common";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import { inject__directver, responser } from "./middlewares";
+import { basicErrorHandler, finalErrorHandler, inject__directver, responser } from "./middlewares";
 import { log, LogName, LogType } from "./util/log";
 import { join } from "node:path";
 import { pathToRegexp } from "path-to-regexp";
@@ -58,6 +58,8 @@ function injectNecessaryMiddlewares() {
 
 function injectEndingMiddlewares() {
   _express.use(responser);
+  _express.use(basicErrorHandler);
+  _express.use(finalErrorHandler);
 }
 
 function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {
@@ -75,9 +77,14 @@ function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {
     const expressFnName = (cover ? "use" : method ? method.toLowerCase() : "all") as keyof typeof _express;
 
     const wrapper = async function(req: DirectverRequest, res: Response, next: NextFunction) {
-      let response: void | Promise<void> = fn(req.__directver.context);
-      if (response instanceof Promise) {
-        response = await response;
+      let response: void | Promise<void>;
+      try {
+        response = fn(req.__directver.context);
+        if (response instanceof Promise) {
+          response = await response;
+        }
+      } catch(err) {
+        return next(err);
       }
 
       return next();
@@ -103,9 +110,15 @@ function subscribeControllers(directoryItem: DirectoryItem, controllers: FileIte
     const expressFnName = (method ? method.toLowerCase() : "all") as keyof typeof _express;
 
     const wrapper = async function(req: DirectverRequest, res: Response, next: NextFunction) {
-      let response: any = fn(req.__directver.context);
-      if (response instanceof Promise) {
-        response = await response;
+      let response: any | Promise<any>;
+
+      try {
+        response = fn(req.__directver.context);
+        if (response instanceof Promise) {
+          response = await response;
+        }
+      } catch(err) {
+        return next(err);
       }
 
       // check empty resposne
@@ -135,13 +148,18 @@ export function subscribeOuts(directoryItem: DirectoryItem, fileItems: FileItem[
     const wrapper = async function (__unknown: any, req: Request, res: Response, next: NextFunction) {
       if (!(__unknown instanceof DirectverResponse)) return next(__unknown);
       const directverResponse = __unknown;
-      let response = fn(directverResponse.data);
-      if (fn instanceof Promise) {
-        /**
-         * there is no check for undefined response in out method
-         * this feature is for a empty response!
-         */
-        response = await response;
+      let response: any | Promise<any>;
+      try {
+        response = fn(directverResponse.data);
+        if (fn instanceof Promise) {
+          /**
+           * there is no check for undefined response in out method
+           * this feature is for a empty response!
+           */
+          response = await response;
+        }
+      } catch(err) {
+        return next(err);
       }
       
       directverResponse.data = response;
@@ -151,6 +169,7 @@ export function subscribeOuts(directoryItem: DirectoryItem, fileItems: FileItem[
     return new LazyInject(
       expressFnName,
       cover ? path : pathToRegexp(path), // exact path not working all the outs are cover at this point TODO
+      path,
       file.descriptor.type,
       file.descriptor.method,
       method !== "all" ? methodizeUse(wrapper, method, true) : wrapper,
@@ -160,7 +179,7 @@ export function subscribeOuts(directoryItem: DirectoryItem, fileItems: FileItem[
 
 function subscribeLazyInjects(lazyInjects: LazyInject[]) {
   for (const lazyInject of lazyInjects) {
-    log(`${lazyInject.method?.toUpperCase().padEnd(5)} "${lazyInject.path}"`, lazyInject.type === FileType.OUT && LogName.OUT);
+    log(`${lazyInject.method?.toUpperCase().padEnd(5)} "${lazyInject.originalPath}"`, lazyInject.type === FileType.OUT && LogName.OUT);
     _express[lazyInject.expressFnName](lazyInject.path, lazyInject.fn);
   }
 }
