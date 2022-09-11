@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { inject__directver, responser } from "./middlewares";
 import { log, LogName, LogType } from "./util/log";
 import { join } from "node:path";
+import { pathToRegexp } from "path-to-regexp";
 
 const _express = express();
 
@@ -149,7 +150,7 @@ export function subscribeOuts(directoryItem: DirectoryItem, fileItems: FileItem[
 
     return new LazyInject(
       expressFnName,
-      cover ? path : path, // exact path not working all the outs are cover at this point TODO
+      cover ? path : pathToRegexp(path), // exact path not working all the outs are cover at this point TODO
       file.descriptor.type,
       file.descriptor.method,
       method !== "all" ? methodizeUse(wrapper, method, true) : wrapper,
