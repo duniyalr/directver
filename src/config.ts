@@ -4,16 +4,15 @@ import { Express } from "express";
 import { STATUS_CODES } from "node:http";
 
 export const FileMethod: {
-  [key: string]: string
+  [key: string]: string;
 } = {
-  POST :"POST",
-  GET : "GET",
-  PUT : "PUT",
-  PATCH : "PATCH",
-  DELETE : "DELETE",
-  ALL: "ALL"
-}
-
+  POST: "POST",
+  GET: "GET",
+  PUT: "PUT",
+  PATCH: "PATCH",
+  DELETE: "DELETE",
+  ALL: "ALL",
+};
 
 export class Config {
   // the relative path of the files directory
@@ -21,7 +20,7 @@ export class Config {
   static ROOT_DIR_NAME: string = "root";
   static ROOT_DIR_FULLNAME: string = "root";
   /**
-   * if a file doesn't export a handler use default handler 
+   * if a file doesn't export a handler use default handler
    * and throw no error
    */
   static USE_DEFAULT_CONTROLLER_FN = true;
@@ -41,12 +40,12 @@ export enum FileType {
 }
 
 /**
- * a dynamic directory will transforms to a dynamic part in 
+ * a dynamic directory will transforms to a dynamic part in
  * route path
  */
 export enum DirectoryType {
   DYNAMIC = "DYNAMIC",
-  STATIC = "STATIC"
+  STATIC = "STATIC",
 }
 
 export class Cursor {
@@ -55,25 +54,37 @@ export class Cursor {
 
 export type FileExportObject = {
   default: Function | Object;
-}
+};
 
 export type FileExport = FileExportObject | undefined;
 
 export const FileScope: {
-  [key: string]: string
+  [key: string]: string;
 } = {
   BODY: "BODY",
   QUERY: "QUERY",
   PARAM: "PARAM",
-}
+};
 
 export class FilePatt {
   static CONTROLLER_TYPE = /^_$/;
   static PIPE_TYPE = /^@?pipe$/;
   static GUARD_TYPE = /^@?guard$/;
   static OUT_TYPE = /^@?out$/;
-  static METHOD = new RegExp("^" + Object.values(FileMethod).map(method => `(${method.toLowerCase()})`).join("|") + "$");
-  static SCOPE = new RegExp("^" + Object.values(FileScope).map(method => `(${method.toLowerCase()})`).join("|") + "$");
+  static METHOD = new RegExp(
+    "^" +
+      Object.values(FileMethod)
+        .map((method) => `(${method.toLowerCase()})`)
+        .join("|") +
+      "$"
+  );
+  static SCOPE = new RegExp(
+    "^" +
+      Object.values(FileScope)
+        .map((method) => `(${method.toLowerCase()})`)
+        .join("|") +
+      "$"
+  );
   static NAME = /^[^0-9][a-zA-z_0-9]*$/;
   static EXT = /(js)|(ts)/;
 }
@@ -84,7 +95,7 @@ export type FileDescriptor = {
   scope: string | null; // type fixing
   name: string | null;
   cover: boolean | null;
-}
+};
 
 export class FileItem {
   readonly fullName: string;
@@ -132,7 +143,7 @@ export class DirectoryItem {
     type: DirectoryType,
     fullName: string,
     relativePath: string,
-    absPath: string ,
+    absPath: string,
     isRoot?: boolean
   ) {
     this.name = name;
@@ -168,7 +179,7 @@ export class Context {
   private request: Request;
   private response: Response;
   private meta: {
-    [key: string]: any
+    [key: string]: any;
   } = {};
 
   constructor(request: Request, response: Response) {
@@ -197,9 +208,11 @@ export class Context {
   }
 }
 
-export type DirectverRequest = Request & { __directver: {
-  context: Context
-}}
+export type DirectverRequest = Request & {
+  __directver: {
+    context: Context;
+  };
+};
 
 export class DirectverResponse {
   data: any;
@@ -209,11 +222,11 @@ export class DirectverResponse {
     this.data = data;
 
     if (typeof data === "object") {
-      this.contentType = "application/json"
+      this.contentType = "application/json";
     } else {
-      this.contentType = "text/plain"
+      this.contentType = "text/plain";
     }
-    
+
     this.statusCode = req.statusCode ? req.statusCode : 200;
   }
 }
@@ -239,7 +252,7 @@ export class LazyInject {
     originalPath: string,
     type: FileType,
     method: string,
-    fn: any,
+    fn: any
   ) {
     this.expressFnName = expressFnName;
     this.path = path;
@@ -254,12 +267,11 @@ export class HttpError {
   statusCode: number;
   message: string;
   error: string;
-  constructor(
-    statusCode: number,
-    message: string
-  ) {
+  constructor(statusCode: number, message: string) {
     this.statusCode = statusCode;
     this.message = message;
-    this.error = STATUS_CODES[this.statusCode] ? STATUS_CODES[this.statusCode] : "Unknown Error";
+    this.error = STATUS_CODES[this.statusCode]
+      ? STATUS_CODES[this.statusCode]
+      : "Unknown Error";
   }
 }

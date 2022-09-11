@@ -17,17 +17,21 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
     CONTROLLER: [],
     PIPE: [],
     GUARD: [],
-    OUT: []
-  } 
+    OUT: [],
+  };
 
-  
-  for(const file of files) {
+  for (const file of files) {
     const descriptor = file.descriptor;
-    switch(file.descriptor.type) {
+    switch (file.descriptor.type) {
       case FileType.CONTROLLER: {
         // this condition has a conflict with fullNameToFileDescriptor TODO
         //if (descriptor.name) criticalErrorHandler(new Error(`Controller can't have a name in ${file.directoryItem.relativePath}`))
-        if (descriptor.scope) criticalErrorHandler(new Error(`Controller can't have a scope in ${file.directoryItem.relativePath}`))
+        if (descriptor.scope)
+          criticalErrorHandler(
+            new Error(
+              `Controller can't have a scope in ${file.directoryItem.relativePath}`
+            )
+          );
         /**
          * if method not provided the default method will use
          */
@@ -37,7 +41,12 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
       }
 
       case FileType.PIPE: {
-        if (descriptor.scope) criticalErrorHandler(new Error(`Pipe can't have a scope in ${file.directoryItem.relativePath}`))
+        if (descriptor.scope)
+          criticalErrorHandler(
+            new Error(
+              `Pipe can't have a scope in ${file.directoryItem.relativePath}`
+            )
+          );
 
         if (!descriptor.method) descriptor.method = Config.DEFAULT_METHOD;
         splittefFiles.PIPE.push(file);
@@ -45,7 +54,12 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
       }
 
       case FileType.GUARD: {
-        if (descriptor.scope) criticalErrorHandler(new Error(`Guard can't have a scope in ${file.directoryItem.relativePath}`))
+        if (descriptor.scope)
+          criticalErrorHandler(
+            new Error(
+              `Guard can't have a scope in ${file.directoryItem.relativePath}`
+            )
+          );
 
         if (!descriptor.method) descriptor.method = Config.DEFAULT_METHOD;
         splittefFiles.GUARD.push(file);
@@ -53,7 +67,6 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
       }
 
       case FileType.OUT: {
-
         if (!descriptor.method) descriptor.method = Config.DEFAULT_METHOD;
         splittefFiles.OUT.push(file);
         break;
@@ -67,30 +80,36 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
 export function isFunction(fn: any): boolean {
   return (
     fn &&
-    (
-      {}.toString.call(fn) === "[object Function]" ||
-      {}.toString.call(fn) === "[object AsyncFunction]"
-    )
-  )
+    ({}.toString.call(fn) === "[object Function]" ||
+      {}.toString.call(fn) === "[object AsyncFunction]")
+  );
 }
 
-export function methodizeUse(fn: Function, methods: string | string[], errorHandler: boolean = false):
-  ((__unknown: any, req: Request, res: Response, next: NextFunction) => any) |
-  ((req: Request, res: Response, next: NextFunction) => any) | 
-  typeof fn
-{
+export function methodizeUse(
+  fn: Function,
+  methods: string | string[],
+  errorHandler: boolean = false
+):
+  | ((__unknown: any, req: Request, res: Response, next: NextFunction) => any)
+  | ((req: Request, res: Response, next: NextFunction) => any)
+  | typeof fn {
   if (!Array.isArray(methods)) methods = [methods];
-  methods = methods.map(method => method.toLowerCase());
+  methods = methods.map((method) => method.toLowerCase());
 
   if (methods.includes("all")) return fn;
 
-  return errorHandler ? 
-  function(__unknown: any, req: Request, res: Response, next: NextFunction) {
-    if (!methods.includes(req.method)) return next();
-    return fn()
-  }
-  : function(req: Request, res: Response, next: NextFunction) {
-    if (!methods.includes(req.method)) return next();
-    return fn()
-  }
+  return errorHandler
+    ? function (
+        __unknown: any,
+        req: Request,
+        res: Response,
+        next: NextFunction
+      ) {
+        if (!methods.includes(req.method)) return next();
+        return fn();
+      }
+    : function (req: Request, res: Response, next: NextFunction) {
+        if (!methods.includes(req.method)) return next();
+        return fn();
+      };
 }

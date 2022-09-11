@@ -4,6 +4,4 @@ export class ControllerDescriptor {
 
   @IsOptional()
   method: string;
-
-  
 }
