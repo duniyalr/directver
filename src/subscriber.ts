@@ -1,6 +1,10 @@
-import express, { NextFunction, Request, Response } from "express";
-import { Context, DirectoryItem, DirectverRequest, FileItem } from "./config";
+import express, { NextFunction, Request, Response, Express } from "express";
+import { Config, Context, ControllerFn, defaultControllerFn, DirectoryItem, DirectverRequest, DirectverResponse, FileItem } from "./config";
 import { criticalErrorHandler, fromFilesToSplitFiles, isFunction } from "./util/common";
+import * as bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import { inject__directver, responser } from "./middlewares";
+import { log, LogName } from "./util/log";
 
 const _express = express();
 
@@ -10,17 +14,45 @@ export type SplittedFiles = {
   GUARD: FileItem[]
 }
 
-export function subscribe(rootDirectoryItem: DirectoryItem) {
+export function subscribe(rootDirectoryItem: DirectoryItem): Express{
+  injectNecessaryMiddlewares();
+
   const openDirectoryItems = [rootDirectoryItem];
-  const activeDirectoryItem = rootDirectoryItem;
+  let activeDirectoryItem = rootDirectoryItem;
 
   while(activeDirectoryItem) {
-    const splittedFiles = fromFilesToSplitFiles(activeDirectoryItem.files);
+    if (activeDirectoryItem.cursor.index === 0) {
 
-    subscribeControllers(activeDirectoryItem, splittedFiles.CONTROLLER);
+      const splittedFiles = fromFilesToSplitFiles(activeDirectoryItem.files);
+      
+      subscribeControllers(activeDirectoryItem, splittedFiles.CONTROLLER);
+      
+    }
+
+    if (activeDirectoryItem.cursor.index >= activeDirectoryItem.subdirectorieNames.length) {
+      openDirectoryItems.pop();
+      activeDirectoryItem = openDirectoryItems[openDirectoryItems.length - 1];
+      continue
+    }
     
-    break;
+    openDirectoryItems.push(activeDirectoryItem.subdirectories[activeDirectoryItem.cursor.index++]);
+    activeDirectoryItem = openDirectoryItems[openDirectoryItems.length - 1];
   }
+
+
+  injectEndingMiddlewares();
+  return _express;
+}
+
+function injectNecessaryMiddlewares() {
+  _express.use(bodyParser.json());
+  _express.use(bodyParser.urlencoded({extended: false}));
+  _express.use(cookieParser());
+  _express.use(inject__directver);
+}
+
+function injectEndingMiddlewares() {
+  _express.use(responser);
 }
 
 function subscribeControllers(directoryItem: DirectoryItem, controllers: FileItem[]) {
@@ -28,23 +60,27 @@ function subscribeControllers(directoryItem: DirectoryItem, controllers: FileIte
     const path = controllerFile.directoryItem.routePath;
     const method = controllerFile.descriptor.method;
 
-    const fn = isFunction(controllerFile?.exported?.default) && controllerFile?.exported?.default as Function;
+    const fn: ControllerFn = isFunction(controllerFile?.exported?.default) 
+      ? controllerFile?.exported?.default as ControllerFn 
+      : defaultControllerFn;
     
-    if (!fn) { criticalErrorHandler(new Error(`Controller in "${directoryItem.relativePath}" doesn't export a function`))}
-    const expressFnName = method ? method.toLowerCase() : "all";
+    if (fn === defaultControllerFn && !Config.USE_DEFAULT_CONTROLLER_FN) {
+      return criticalErrorHandler(new Error(`Controller in "${directoryItem.relativePath}" doesn't export a function`))
+    }
+    const expressFnName = (method ? method.toLowerCase() : "all") as keyof typeof _express;
 
     const wrapper = async function(req: DirectverRequest, res: Response, next: NextFunction) {
-      let response: any = await fn(req.__directver.context);
+      let response: any = fn(req.__directver.context);
       if (response instanceof Promise) {
         response = await response;
       }
 
       // check empty resposne
       if (!response) response = {};
-
-      return next(response);
+      return next(new DirectverResponse(response, req));
     }
 
+    log(`"${path}" added`, LogName.ROUTE);
     _express[expressFnName](path, wrapper);
   }
 }

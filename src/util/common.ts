@@ -18,11 +18,11 @@ export function fromFilesToSplitFiles(files: FileItem[]): SplittedFiles {
     GUARD: []
   } 
 
+  
   for(const file of files) {
     const descriptor = file.descriptor;
     switch(file.descriptor.type) {
       case FileType.CONTROLLER: {
-        console.log(descriptor)
         // this condition has a conflict with fullNameToFileDescriptor TODO
         //if (descriptor.name) criticalErrorHandler(new Error(`Controller can't have a name in ${file.directoryItem.relativePath}`))
         if (descriptor.scope) criticalErrorHandler(new Error(`Controller can't have a scope in ${file.directoryItem.relativePath}`))

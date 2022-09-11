@@ -3,8 +3,13 @@ export enum LogType {
   ERROR = "ERROR"
 }
 
-export function log(message: string) {
-  console.log(`[${LogType.LOG}]       ${message}`);
+export enum LogName {
+  CHECK = "CHECK",
+  ROUTE = "ROUTE",
+}
+
+export function log(message: string, logName: LogName = LogName.CHECK) {
+  console.log(`[${LogType.LOG}]  [${(new Date()).toLocaleTimeString()}]  [${logName}]  ${message}`);
 }
 
 export function logError(message: string) {

@@ -6,6 +6,8 @@ export class Config {
   static MAIN_DIR_PATH: string = "api";
   static ROOT_DIR_NAME: string = "root";
   static ROOT_DIR_FULLNAME: string = "root";
+  static USE_DEFAULT_CONTROLLER_FN = true;
+  static PORT = 2323;
 }
 
 export enum FileType {
@@ -129,6 +131,18 @@ export class DirectoryItem {
     this.routePath = fromRelativePathToRoutePath(this.relativePath);
     this.cursor = new Cursor();
   }
+
+  resetCursor() {
+    this.cursor = new Cursor();
+  }
+}
+
+export class __Directver {
+  context: Context;
+
+  constructor(context: Context) {
+    this.context = context;
+  }
 }
 
 export class Context {
@@ -138,11 +152,17 @@ export class Context {
 
   private request: Request;
   private response: Response;
-  private meta: Object = {};
+  private meta: {
+    [key: string]: any
+  } = {};
 
   constructor(request: Request, response: Response) {
     this.request = request;
     this.response = response;
+
+    this.body = request.body;
+    this.params = request.params;
+    this.query = request.query;
   }
 
   setMeta(key: string, value: any) {
@@ -179,6 +199,11 @@ export class DirectverResponse {
       this.contentType = "text/plain"
     }
     
-    this.statusCode = req.statusCode;
+    this.statusCode = req.statusCode ? req.statusCode : 200;
   }
+}
+
+export type ControllerFn = (ctx: Context) => any;
+export function defaultControllerFn(ctx: Context) {
+  return {};
 }

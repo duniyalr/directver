@@ -4,12 +4,14 @@
  */
 
 import { Config, DirectoryItem, DirectoryType, FileItem } from "./config";
+import { log } from "./util/log";
 import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { criticalErrorHandler } from "./util/common";
 import { fromFullNameToDirectoryItemName, fullNameToFileDescriptor, seperateDirectoryFromFile } from "./util/dir";
 
 export async function traverseMainDirectory(): Promise<DirectoryItem> {
+  log(`Traversing the "${Config.MAIN_DIR_PATH}" directory`)
   const mainDir = Config.MAIN_DIR_PATH;
   const openDirectoryItems: DirectoryItem[] = [];
   let activeDirectoryItem: DirectoryItem;
@@ -70,6 +72,8 @@ export async function traverseMainDirectory(): Promise<DirectoryItem> {
     }
 
     if (activeDirectoryItem.cursor.index >= activeDirectoryItem.subdirectories.length) {
+      // reseting cursor for next tree traversing;
+      activeDirectoryItem.resetCursor();
       openDirectoryItems.pop();
       activeDirectoryItem = openDirectoryItems[openDirectoryItems.length - 1];
       continue;
