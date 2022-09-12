@@ -116,6 +116,9 @@ function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {
       next: NextFunction
     ) {
       let response: void | Promise<void>;
+      if (expressFnName === "use") {
+        if (req.method !== method.toUpperCase()) return next();
+      }
       try {
         response = fn(req.__directver.context);
         if (response instanceof Promise) {
@@ -134,7 +137,7 @@ function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {
     );
     _express[expressFnName](
       path,
-      expressFnName === "use" ? methodizeUse(wrapper, method) : wrapper
+      wrapper //expressFnName === "use" ? methodizeUse(wrapper, method) : wrapper
     );
   }
 }
@@ -146,7 +149,7 @@ function subscribeControllers(
   for (const file of controllers) {
     const path = file.directoryItem.routePath;
     const method = file.descriptor.method;
-
+    //console.log(file);
     const fn: ControllerFn = isFunction(file?.exported?.default)
       ? (file?.exported?.default as ControllerFn)
       : defaultControllerFn;
@@ -187,6 +190,7 @@ function subscribeControllers(
       `${file?.descriptor?.method?.toUpperCase().padEnd(5)} "${path}"`,
       LogName.ROUTE
     );
+    //console.log(path, wrapper, expressFnName);
     _express[expressFnName](path, wrapper);
   }
 }
@@ -196,8 +200,9 @@ export function subscribeOuts(
   fileItems: FileItem[]
 ): LazyInject[] {
   return fileItems.map((file) => {
+    //console.log(file.descriptor);
     const path = file.directoryItem.routePath;
-    const method = file.descriptor.method;
+    const method = file.descriptor.method.toLowerCase();
     const cover = file.descriptor.cover;
     const fn: OutFn = isFunction(file?.exported?.default)
       ? (file?.exported?.default as OutFn)
@@ -222,6 +227,9 @@ export function subscribeOuts(
       next: NextFunction
     ) {
       if (!(__unknown instanceof DirectverResponse)) return next(__unknown);
+      if (method !== "all") {
+        if (req.method !== method.toUpperCase()) return next(__unknown);
+      }
       const directverResponse = __unknown;
       let response: any | Promise<any>;
       try {
@@ -246,14 +254,15 @@ export function subscribeOuts(
       cover ? path : pathToRegexp(path), // exact path not working all the outs are cover at this point TODO
       path,
       file.descriptor.type,
-      file.descriptor.method,
-      method !== "all" ? methodizeUse(wrapper, method, true) : wrapper
+      method,
+      wrapper
     );
   }) as LazyInject[];
 }
 
 function subscribeLazyInjects(lazyInjects: LazyInject[]) {
   for (const lazyInject of lazyInjects) {
+    //console.log(lazyInject.fn.toString(), lazyInject);
     log(
       `${lazyInject.method?.toUpperCase().padEnd(5)} "${
         lazyInject.originalPath

@@ -94,10 +94,10 @@ export function methodizeUse(
   | ((req: Request, res: Response, next: NextFunction) => any)
   | typeof fn {
   if (!Array.isArray(methods)) methods = [methods];
-  methods = methods.map((method) => method.toLowerCase());
+  methods = methods.map((method) => method.toUpperCase());
 
   if (methods.includes("all")) return fn;
-
+  console.log(methods);
   return errorHandler
     ? function (
         __unknown: any,
