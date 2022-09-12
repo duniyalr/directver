@@ -10,14 +10,6 @@ Directver is a Node.js framework for building web apps with a different approach
 - [ ] Add Dtos
 - [ ] Add common erorr classes
 
-## Installation
-
-You can install Directver with npm;
-
-```
-npm install directver
-```
-
 ## How Directver works?
 
 Directver has not very common approach for buliding web apps. although you can see this pattern in some frameworks like Next.js for making routes.
@@ -256,7 +248,7 @@ test-project
 
 route `/just-user` added to project. it's controller can be like this:
 
-```js
+```ts
 // api/just-user/_.ts
 import { Context } from "directver";
 export default function ({ getMeta }: Context) {
@@ -273,3 +265,80 @@ export default function ({ getMeta }: Context) {
 ```
 
 Controller uses `getMeta` for reading data that pipe maybe setted in the metas. by the way this not a right way to protect a route! Directver has `guards` for handling this task. but later.
+
+## Controllers
+
+```ts
+type ControllerFunction = (ctx: Context) => any | Promise<any>;
+```
+
+```
+_.{?FileMethod}.{?FileName}.ts
+```
+
+A controller file should export a function. the returned value from function will be response of the request.
+
+a Controller can throw an standard `HttpError` or any other error the error handle layer catches them.
+
+a controller cannot have a cover symbol.
+
+## Pipes
+
+```ts
+type PipeFunction = (ctx: Context) => void | Promise<void>;
+```
+
+```
+{?@}pipe.{?FileMethod}.{?FileName}.ts
+```
+
+All pipes in a folder will execute before the controller. pipes should not return any value. the goal of pipes are to be helper for controller.
+
+> at this point there is no way to order pipes execution
+
+pipes can be cover files. cover pipes will execute in before the route pipes.
+
+## OUTS
+
+```ts
+type OutFunction = (
+  responseData: ResponseData,
+  ctx: Context
+) => any | Promise<any>;
+```
+
+```
+{?@}out.{?FileMethod}.{?FileName}.ts
+```
+
+In Directver controller is not last file. `out`s are files that execute after controller execution. you can use these files for transforming the response of controllers or logging purposes. an `out` is opposite of a pipe.
+
+> return value from an out will replace the response of a controller or previous outs.
+
+out function gets two argument. first on is a ResopnseData. a responseData holds the response from controller and some additional data. the second argument is Context.
+
+for example we can make all responses to follow a schema with a global out:
+
+```js
+// api/@out.ts
+import { Context, ResponseData } from "directver";
+export default function (responseData: ResponseData, ctx: Context) {
+  return {
+    success: true,
+    statusCode: responseData.statusCode,
+    data: responseData.data,
+  };
+}
+```
+
+the project looks like this:
+
+```
+test-project
+├── api
+│   .
+│   .
+│   .
+├── @out.ts
+└── index.ts
+```
