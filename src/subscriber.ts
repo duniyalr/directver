@@ -116,7 +116,8 @@ function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {
       next: NextFunction
     ) {
       let response: void | Promise<void>;
-      if (expressFnName === "use") {
+      // should be changed
+      if (expressFnName === "use" && method !== "ALL") {
         if (req.method !== method.toUpperCase()) return next();
       }
       try {

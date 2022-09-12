@@ -139,3 +139,129 @@ test-project
 you can see folder with `[userId]` name. the controller in this folder will executed for all request with `/user/*` form. you can have anything in `*` position. for example `/user/duniyalr` or `/user/345436354`.
 
 you can access these values in controllers and pipes with `userId` name.(you will see that later)
+
+## Getting started
+
+Every Directver project should have `api` folder. this structure is a very basic Directver project.
+
+```
+test-project
+├── api
+└── index.ts
+```
+
+in the `index.ts` we should import `Directver`.
+
+```js
+// index.ts
+import Directver from "directver";
+
+async function bootstrap() {
+  const app = await Directver({
+    port: 2323,
+  });
+}
+
+bootstrap();
+```
+
+Directver gets an optio object. you can specify the port with this object.
+
+now we want add route with `/hello-world` path. so add a new folder in `api` with `hello-world` and add a controller.
+
+```
+test-project
+├── api
+│   └── hello-world
+│       └── _.ts
+├── package.json
+└── index.ts
+```
+
+controller should export function to handle request.
+
+```js
+// api/hello-world/_.ts
+import { Context } from "directver";
+export default function helloWorldController(ctx: Context) {
+  return {
+    message: "Hello world!",
+  };
+}
+```
+
+the controller should return the response. in this controller we just returned an object. controllers get an argument with `Context` type.
+
+Directver is built on top of express. Context is Directver special class that simplifies the access to some useful methods and properties for handling request. but Directver allow you access to Express Request and Response objects.
+
+That's it! you can run your project. if you make a request to port 2323 you will get
+
+```json
+{
+  "message": "Hello world!"
+}
+```
+
+as response.
+
+now i want add a pipe to limit access to this route. so we want to add a meta data with pipe to specifies that user have access to this route or not.
+
+this will done with add a `user` property to _metaData_. meta data transfer by Context withing pipes and controllers and other files and you can set or get data from it. so just add pipe in route and make it _cover_ by adding _@_ to its name.
+
+```
+test-project
+├── api
+│   └── hello-world
+│       └── _.ts
+├── @pipe.setUser.ts
+└── index.ts
+```
+
+File `@pipe.setUser.ts` added.
+
+```js
+// api/@pipe.setUser.ts
+import { Context } from "directver";
+export default function setUserPipe({ setMeta }: Context) {
+  if (isUser()) {
+    setMeta("isUser", true);
+  }
+}
+```
+
+this pipe is in root `api` folder and has a cover symbol(@) so this pipe will execute for all the requests. pipes like controllers get a Context as argument. in this pipe we used `setMeta`. `setMeta` is a method that context uses for moving data between files. `setMeta` gets a _key_ and a _value_.
+
+later in other files you can get this value with `getMeta` method. `isUser` is a fake method that holds logic for user authentication.
+
+now i add antother route.
+
+```
+test-project
+├── api
+│   ├── hello-world
+│   │   └── _.ts
+│   └── just-user
+│       └── _.ts
+├── @pipe.setUser.ts
+└── index.ts
+```
+
+route `/just-user` added to project. it's controller can be like this:
+
+```js
+// api/just-user/_.ts
+import { Context } from "directver";
+export default function ({ getMeta }: Context) {
+  const isUser = getMeta("isUser");
+  if (!isUser)
+    return {
+      message: "Sorry just users!",
+    };
+
+  return {
+    message: "Hello my user!",
+  };
+}
+```
+
+Controller uses `getMeta` for reading data that pipe maybe setted in the metas. by the way this not a right way to protect a route! Directver has `guards` for handling this task. but later.

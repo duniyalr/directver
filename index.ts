@@ -37,4 +37,4 @@ export default async function (opts?: ConfigOption): Promise<Express> {
   return _expressApp;
 }
 
-export { HttpError } from "./src/config";
+export { HttpError, Context } from "./src/config";
