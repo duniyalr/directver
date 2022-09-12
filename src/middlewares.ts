@@ -62,5 +62,10 @@ export function finalErrorHandler(
   return res
     .status(500)
     .contentType("application/json")
-    .send(new HttpError(500, "Something happened!"));
+    .send(
+      new HttpError(
+        500,
+        err instanceof Error ? err.message : "Something happened!"
+      )
+    );
 }

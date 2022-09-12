@@ -196,21 +196,21 @@ export class Context {
     this.query = request.query;
   }
 
-  setMeta(key: string, value: any) {
+  setMeta = (key: string, value: any) => {
     this.meta[key] = value;
-  }
+  };
 
-  getMeta(key: string) {
+  getMeta = (key: string) => {
     return this.meta[key];
-  }
+  };
 
-  getRequest(): Request {
+  getRequest = (): Request => {
     return this.request;
-  }
+  };
 
-  getResponse(): Response {
+  getResponse = (): Response => {
     return this.response;
-  }
+  };
 }
 
 export type DirectverRequest = Request & {
