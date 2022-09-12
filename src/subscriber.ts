@@ -24,6 +24,7 @@ import {
   basicErrorHandler,
   finalErrorHandler,
   inject__directver,
+  notFoundHandler,
   responser,
 } from "./middlewares";
 import { log, LogName, LogType } from "./util/log";
@@ -82,6 +83,7 @@ function injectNecessaryMiddlewares() {
 }
 
 function injectEndingMiddlewares() {
+  _express.all("*", notFoundHandler);
   _express.use(responser);
   _express.use(basicErrorHandler);
   _express.use(finalErrorHandler);

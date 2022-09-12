@@ -38,6 +38,16 @@ export function responser(
     .send(directverResponse.data);
 }
 
+// this middleware will add at the end of controllers
+// to handle 404 error.
+export function notFoundHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  return next(new HttpError(404, "this route not exists!"));
+}
+
 export function basicErrorHandler(
   err: any,
   req: Request,
