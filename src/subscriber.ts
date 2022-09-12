@@ -225,7 +225,7 @@ export function subscribeOuts(
       const directverResponse = __unknown;
       let response: any | Promise<any>;
       try {
-        response = fn(directverResponse.data);
+        response = fn(directverResponse);
         if (fn instanceof Promise) {
           /**
            * there is no check for undefined response in out method

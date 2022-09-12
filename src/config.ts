@@ -14,6 +14,11 @@ export const FileMethod: {
   ALL: "ALL",
 };
 
+export type ConfigOption = {
+  mainDir?: string;
+  port?: number;
+};
+
 export class Config {
   // the relative path of the files directory
   static MAIN_DIR_PATH: string = "api";
