@@ -10,6 +10,14 @@ Directver is a Node.js framework for building web apps with a different approach
 - [ ] Add Dtos
 - [ ] Add common erorr classes
 
+## Installation
+
+You can install Directver with npm;
+
+```
+npm install directver
+```
+
 ## How Directver works?
 
 Directver has not very common approach for buliding web apps. although you can see this pattern in some frameworks like Next.js for making routes.
