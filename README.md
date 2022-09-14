@@ -6,7 +6,7 @@ Directver is a Node.js framework for building web apps with a different approach
 
 - [ ] A dignified doc!
 - [ ] Add Model
-- [ ] Add Guards
+- [x] Add Guards
 - [ ] Add Dtos
 - [ ] Add common erorr classes
 
