@@ -9,6 +9,8 @@ import {
   DirectverResponse,
   FileItem,
   FileType,
+  GuardFn,
+  HttpError,
   LazyInject,
   OutFn,
 } from "./config";
@@ -16,7 +18,6 @@ import {
   criticalErrorHandler,
   fromFilesToSplitFiles,
   isFunction,
-  methodizeUse,
 } from "./util/common";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -50,6 +51,7 @@ export function subscribe(rootDirectoryItem: DirectoryItem): Express {
   while (activeDirectoryItem) {
     if (activeDirectoryItem.cursor.index === 0) {
       const splittedFiles = fromFilesToSplitFiles(activeDirectoryItem.files);
+      subscribeGuards(activeDirectoryItem, splittedFiles.GUARD);
       subscribePipes(activeDirectoryItem, splittedFiles.PIPE);
       subscribeControllers(activeDirectoryItem, splittedFiles.CONTROLLER);
       outs.push(...subscribeOuts(activeDirectoryItem, splittedFiles.OUT));
@@ -87,6 +89,64 @@ function injectEndingMiddlewares() {
   _express.use(responser);
   _express.use(basicErrorHandler);
   _express.use(finalErrorHandler);
+}
+
+function subscribeGuards(directoryItem: DirectoryItem, fileItems: FileItem[]) {
+  for (const file of fileItems) {
+    const path = file.directoryItem.routePath;
+    const method = file.descriptor.method;
+    const cover = file.descriptor.cover;
+    const fn: ControllerFn = isFunction(file?.exported?.default)
+    ? (file?.exported?.default as GuardFn)
+    : defaultControllerFn;
+  
+    if (fn === defaultControllerFn) {
+      return criticalErrorHandler(
+        new Error(
+          `Guard "${join(
+            directoryItem.relativePath,
+            file.fullName
+          )}" doesn't export a function`
+        )
+      );
+    }
+
+    const expressFnName = (
+      cover ? "use" : method ? method.toLowerCase() : "all"
+    ) as keyof typeof _express;
+
+    const wrapper = async function (
+      req: DirectverRequest,
+      res: Response,
+      next: NextFunction
+    ) {
+      let response: boolean | Promise<boolean>;
+      // should be changed
+      if (expressFnName === "use" && method !== "ALL") {
+        if (req.method !== method.toUpperCase()) return next();
+      }
+      try {
+        response = fn(req.__directver.context);
+        if (response instanceof Promise) {
+          response = await response;
+        }
+      } catch (err) {
+        return next(err);
+      }
+
+      if (response) return next();
+      return next(new HttpError(403, "You don't have access to this route"));
+    };
+
+    log(
+      `${file?.descriptor?.method?.toUpperCase().padEnd(5)} "${path}"`,
+      LogName.GUARD
+    );
+    _express[expressFnName](
+      path,
+      wrapper //expressFnName === "use" ? methodizeUse(wrapper, method) : wrapper
+    );
+  }
 }
 
 function subscribePipes(directoryItem: DirectoryItem, fileItems: FileItem[]) {

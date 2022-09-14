@@ -236,6 +236,8 @@ export class DirectverResponse {
   }
 }
 
+export type GuardFn = (ctx: Context) => boolean;
+export type PipeFn = (ctx: Context) => any;
 export type ControllerFn = (ctx: Context) => any;
 export type OutFn = (data: any) => any;
 

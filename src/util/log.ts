@@ -12,6 +12,7 @@ export enum LogType {
 export enum LogName {
   CHECK = "CHECK",
   ROUTE = "ROUTE",
+  GUARD = "GUARD",
   PIPE = "PIPE",
   OUT = "OUT",
 }
